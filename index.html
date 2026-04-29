@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SimStatik — Simulasi Interaktif Statistik Sektoral</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0A1628;
+  --navy2: #142240;
+  --navy3: #1E3460;
+  --teal: #00B89C;
+  --teal2: #00D4B5;
+  --gold: #F4A916;
+  --red: #E63946;
+  --white: #FFFFFF;
+  --gray50: #F8FAFB;
+  --gray100: #EEF2F7;
+  --gray200: #D8E2EE;
+  --gray400: #8FA3BF;
+  --gray600: #4A6080;
+  --gray800: #1E3050;
+  --text: #0A1628;
+  --font-sans: 'IBM Plex Sans', sans-serif;
+  --font-serif: 'IBM Plex Serif', serif;
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(10,22,40,0.12);
+  --shadow-lg: 0 8px 40px rgba(10,22,40,0.18);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── LANDING ──────────────────────────────────── */
+#landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #060e1c 0%, #0A1628 40%, #0d2040 100%);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+#landing::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 70% 30%, rgba(0,184,156,0.08) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 40% at 20% 80%, rgba(244,169,22,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.grid-bg {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.land-badge {
+  background: rgba(0,184,156,0.15);
+  border: 1px solid rgba(0,184,156,0.3);
+  color: var(--teal);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.4rem 1rem;
+  border-radius: 100px;
+  margin-bottom: 1.5rem;
+}
+.land-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.15;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.75) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.land-sub {
+  color: var(--gray400);
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 3rem;
+  max-width: 500px;
+}
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 580px;
+  margin-bottom: 2.5rem;
+}
+.role-card {
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.role-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.role-card.narasumber::before { background: linear-gradient(135deg, rgba(0,184,156,0.12), rgba(0,212,181,0.06)); }
+.role-card.peserta::before { background: linear-gradient(135deg, rgba(244,169,22,0.12), rgba(244,169,22,0.04)); }
+.role-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.25); }
+.role-card:hover::before { opacity: 1; }
+.role-card:hover.narasumber { border-color: rgba(0,184,156,0.5); }
+.role-card:hover.peserta { border-color: rgba(244,169,22,0.5); }
+.role-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+.role-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+.role-desc {
+  font-size: 0.8rem;
+  color: var(--gray400);
+  line-height: 1.5;
+}
+.join-box {
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 580px;
+  display: none;
+  animation: fadeUp 0.3s ease;
+}
+.join-box.show { display: block; }
+.join-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray400);
+  margin-bottom: 0.5rem;
+}
+.join-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.inp {
+  flex: 1;
+  background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: white;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  padding: 0.65rem 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.inp:focus { border-color: var(--teal); }
+.inp::placeholder { color: var(--gray400); }
+.btn {
+  background: var(--teal);
+  color: var(--navy);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.65rem 1.4rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--teal2); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn-ghost {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  color: white;
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.35); }
+.btn-gold { background: var(--gold); color: var(--navy); }
+.btn-gold:hover { background: #f8b830; }
+.btn-red { background: var(--red); color: white; }
+.btn-red:hover { background: #c1333f; }
+.btn-sm { padding: 0.4rem 0.85rem; font-size: 0.8rem; }
+.btn-icon { padding: 0.5rem 0.7rem; font-size: 1rem; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── MAIN APP ──────────────────────────────────── */
+#app { display: none; height: 100vh; overflow: hidden; }
+
+/* ── NARASUMBER LAYOUT ─────────────────────────── */
+#ns-view {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  background: var(--navy);
+}
+.ns-topbar {
+  grid-column: 1 / -1;
+  background: var(--navy2);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 0 1.5rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.ns-topbar .logo {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--teal);
+  font-weight: 600;
+  margin-right: auto;
+}
+.session-pill {
+  background: rgba(0,184,156,0.12);
+  border: 1px solid rgba(0,184,156,0.25);
+  color: var(--teal);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: 100px;
+  letter-spacing: 0.06em;
+}
+.participant-count {
+  color: var(--gray400);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.dot-green { width: 7px; height: 7px; background: var(--teal); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.ns-main {
+  grid-column: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Slide Stage */
+.slide-stage {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  box-shadow: var(--shadow-lg);
+  flex-shrink: 0;
+}
+
+/* Nav row */
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.mod-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  color: var(--gray400);
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mod-btn.active {
+  background: rgba(0,184,156,0.15);
+  border-color: rgba(0,184,156,0.4);
+  color: var(--teal);
+}
+.slide-counter {
+  color: var(--gray400);
+  font-size: 0.82rem;
+  margin-left: auto;
+}
+
+/* Thumbnail strip */
+.thumb-strip {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.thumb-strip::-webkit-scrollbar { height: 4px; }
+.thumb-strip::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 2px; }
+.thumb-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+.thumb {
+  flex-shrink: 0;
+  width: 80px;
+  height: 45px;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: all 0.15s;
+  position: relative;
+}
+.thumb:hover { border-color: rgba(255,255,255,0.3); }
+.thumb.active { border-color: var(--teal); }
+.thumb iframe {
+  width: 400%;
+  height: 400%;
+  transform: scale(0.25);
+  transform-origin: top left;
+  pointer-events: none;
+  border: none;
+}
+.thumb-label {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(10,22,40,0.75);
+  color: white;
+  font-size: 0.5rem;
+  padding: 2px 3px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── NARASUMBER PANEL ──────────────────────────── */
+.ns-panel {
+  grid-column: 2;
+  grid-row: 2;
+  background: var(--navy2);
+  border-left: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.panel-tab {
+  flex: 1;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--gray400);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+}
+.panel-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+.badge-count {
+  position: absolute;
+  top: 6px; right: 8px;
+  background: var(--red);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+.panel-body::-webkit-scrollbar { width: 4px; }
+.panel-body::-webkit-scrollbar-track { background: transparent; }
+.panel-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+/* Q&A items */
+.qa-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px;
+  padding: 0.85rem;
+  margin-bottom: 0.75rem;
+  animation: fadeUp 0.3s ease;
+}
+.qa-author {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--teal);
+  margin-bottom: 0.3rem;
+}
+.qa-text {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.5;
+  margin-bottom: 0.6rem;
+}
+.qa-answered {
+  background: rgba(0,184,156,0.08);
+  border-left: 3px solid var(--teal);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.7);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+.qa-answer-form { margin-top: 0.5rem; display: flex; gap: 0.5rem; }
+.qa-answer-form input {
+  flex: 1;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: white;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  padding: 0.4rem 0.7rem;
+  outline: none;
+}
+.qa-answer-form input:focus { border-color: var(--teal); }
+.empty-state {
+  text-align: center;
+  color: var(--gray400);
+  font-size: 0.85rem;
+  padding: 2rem 1rem;
+}
+.empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+/* Quiz/Poll panel */
+.quiz-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px;
+  padding: 0.85rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.quiz-item:hover { border-color: rgba(0,184,156,0.4); background: rgba(0,184,156,0.05); }
+.quiz-item.sent { opacity: 0.5; cursor: default; }
+.quiz-item.sent:hover { border-color: rgba(255,255,255,0.09); background: rgba(255,255,255,0.04); }
+.quiz-q { font-size: 0.82rem; font-weight: 600; margin-bottom: 0.4rem; }
+.quiz-opts { font-size: 0.75rem; color: var(--gray400); }
+.launch-btn { margin-top: 0.6rem; }
+
+/* Poll results */
+.poll-result-bar {
+  margin-bottom: 0.6rem;
+}
+.poll-result-label { font-size: 0.78rem; color: rgba(255,255,255,0.8); margin-bottom: 0.2rem; display: flex; justify-content: space-between; }
+.poll-bar-track { background: rgba(255,255,255,0.08); border-radius: 4px; height: 8px; overflow: hidden; }
+.poll-bar-fill { height: 100%; background: var(--teal); border-radius: 4px; transition: width 0.5s ease; }
+.poll-bar-fill.gold { background: var(--gold); }
+
+/* Participants list */
+.part-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.85rem;
+}
+.part-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── PESERTA VIEW ──────────────────────────────── */
+#pt-view {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--navy);
+}
+.pt-topbar {
+  background: var(--navy2);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 0 1.5rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+.pt-name { font-weight: 600; font-size: 0.9rem; }
+.pt-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.pt-slide-stage {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  box-shadow: var(--shadow-lg);
+  flex-shrink: 0;
+}
+.pt-sync-label {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--gray400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.pt-tabs {
+  display: flex;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.pt-tab {
+  flex: 1;
+  padding: 0.7rem;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--gray400);
+  transition: all 0.2s;
+}
+.pt-tab.active {
+  background: rgba(0,184,156,0.12);
+  color: var(--teal);
+}
+.pt-panel {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 1rem;
+  display: none;
+}
+.pt-panel.active { display: block; }
+.qa-form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gray400);
+  margin-bottom: 0.5rem;
+}
+.qa-form-area {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: white;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  padding: 0.7rem 1rem;
+  outline: none;
+  resize: none;
+  height: 90px;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.2s;
+}
+.qa-form-area:focus { border-color: var(--teal); }
+.qa-form-area::placeholder { color: var(--gray400); }
+.my-questions { margin-top: 1rem; }
+.my-q-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  padding: 0.7rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.83rem;
+}
+.my-q-label { font-size: 0.7rem; color: var(--gray400); margin-bottom: 0.25rem; }
+
+/* Poll overlay */
+.poll-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,22,40,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1.5rem;
+  animation: fadeIn 0.3s ease;
+  display: none;
+}
+.poll-overlay.show { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.poll-card {
+  background: var(--navy2);
+  border: 2px solid rgba(0,184,156,0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: fadeUp 0.35s ease;
+}
+.poll-card-header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.poll-card-question {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+.poll-option {
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.poll-option:hover { border-color: rgba(0,184,156,0.5); background: rgba(0,184,156,0.08); }
+.poll-option.selected { border-color: var(--teal); background: rgba(0,184,156,0.15); color: var(--teal); }
+.poll-option.correct { border-color: var(--teal); background: rgba(0,184,156,0.2); color: var(--teal2); }
+.poll-option.wrong { border-color: var(--red); background: rgba(230,57,70,0.15); color: #ff8088; }
+.opt-letter {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.poll-option.selected .opt-letter { background: var(--teal); color: var(--navy); }
+.poll-option.correct .opt-letter { background: var(--teal); color: var(--navy); }
+.poll-option.wrong .opt-letter { background: var(--red); color: white; }
+.poll-feedback {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: none;
+}
+.poll-feedback.show { display: block; }
+.poll-feedback.right { background: rgba(0,184,156,0.15); color: var(--teal2); border: 1px solid rgba(0,184,156,0.3); }
+.poll-feedback.wrong { background: rgba(230,57,70,0.12); color: #ff8088; border: 1px solid rgba(230,57,70,0.3); }
+
+/* ── SLIDE RENDERER ────────────────────────────── */
+.slide {
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-sans);
+  position: relative;
+  overflow: hidden;
+}
+.slide-cover {
+  background: linear-gradient(135deg, #0A1628 0%, #142240 50%, #1a3060 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8% 10%;
+  height: 100%;
+}
+.slide-cover .cover-badge {
+  background: rgba(0,184,156,0.2);
+  border: 1px solid rgba(0,184,156,0.4);
+  color: #00D4B5;
+  font-size: 0.55em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.3em 0.9em;
+  border-radius: 100px;
+  margin-bottom: 0.8em;
+}
+.slide-cover .cover-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 1.8em;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+  max-width: 80%;
+}
+.slide-cover .cover-sub {
+  color: rgba(255,255,255,0.6);
+  font-size: 0.7em;
+  margin-bottom: 1.5em;
+}
+.slide-cover .cover-presenter {
+  border-left: 3px solid #00B89C;
+  padding-left: 0.8em;
+}
+.slide-cover .pres-name { font-weight: 700; font-size: 0.8em; color: white; }
+.slide-cover .pres-role { font-size: 0.62em; color: rgba(255,255,255,0.55); }
+.slide-cover .deco {
+  position: absolute;
+  right: -4%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38%;
+  height: 85%;
+  border-radius: 50% 30% 50% 30%;
+  background: radial-gradient(ellipse at center, rgba(0,184,156,0.12) 0%, rgba(0,184,156,0.03) 60%, transparent 80%);
+  border: 1px solid rgba(0,184,156,0.1);
+}
+.slide-deco-dots {
+  position: absolute;
+  right: 8%; bottom: 10%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+.slide-deco-dots span {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  display: block;
+}
+
+/* Content slide */
+.slide-content {
+  background: #F8FAFB;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.slide-header {
+  background: linear-gradient(90deg, #0A1628, #142240);
+  color: white;
+  padding: 3.5% 6%;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+.slide-header .slide-num {
+  background: rgba(0,184,156,0.3);
+  color: #00D4B5;
+  font-size: 0.55em;
+  font-weight: 700;
+  padding: 0.3em 0.7em;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.slide-header .slide-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 1.1em;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.slide-body {
+  flex: 1;
+  padding: 4% 6%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3%;
+}
+
+/* Bullet items */
+.bullet-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6em;
+  padding: 0.5em 0.7em;
+  border-radius: 6px;
+  background: white;
+  box-shadow: 0 1px 4px rgba(10,22,40,0.07);
+}
+.bullet-icon {
+  width: 1.8em; height: 1.8em;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A1628, #1E3460);
+  color: #00D4B5;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65em;
+  flex-shrink: 0;
+  margin-top: 0.1em;
+}
+.bullet-content .b-label {
+  font-size: 0.6em;
+  font-weight: 700;
+  color: #0A1628;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.15em;
+}
+.bullet-content .b-text {
+  font-size: 0.62em;
+  color: #4A6080;
+  line-height: 1.4;
+}
+
+/* Step items */
+.step-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3%;
+  height: 100%;
+}
+.step-item {
+  background: white;
+  border-radius: 8px;
+  padding: 5%;
+  box-shadow: 0 2px 8px rgba(10,22,40,0.08);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.step-num {
+  width: 2em; height: 2em;
+  border-radius: 50%;
+  background: #0A1628;
+  color: #00D4B5;
+  font-size: 0.8em;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 0.5em;
+}
+.step-title { font-size: 0.68em; font-weight: 700; color: #0A1628; margin-bottom: 0.4em; line-height: 1.3; }
+.step-text { font-size: 0.58em; color: #4A6080; line-height: 1.5; flex: 1; }
+.step-badge {
+  position: absolute;
+  top: -1px; right: -1px;
+  background: #00B89C;
+  color: white;
+  font-size: 0.5em;
+  font-weight: 700;
+  padding: 0.2em 0.6em;
+  border-radius: 0 8px 0 6px;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2%;
+}
+.tl-item {
+  display: flex;
+  gap: 4%;
+  align-items: flex-start;
+}
+.tl-left {
+  text-align: right;
+  min-width: 14%;
+  flex-shrink: 0;
+}
+.tl-month {
+  font-size: 0.62em;
+  font-weight: 700;
+  color: #0A1628;
+  text-transform: uppercase;
+}
+.tl-dot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.tl-dot {
+  width: 0.9em; height: 0.9em;
+  border-radius: 50%;
+  background: #00B89C;
+  border: 2px solid #F8FAFB;
+  box-shadow: 0 0 0 2px #00B89C;
+  flex-shrink: 0;
+}
+.tl-line { width: 2px; background: rgba(10,22,40,0.12); flex: 1; min-height: 0.8em; }
+.tl-card {
+  background: white;
+  border-radius: 6px;
+  padding: 3% 4%;
+  box-shadow: 0 1px 4px rgba(10,22,40,0.07);
+  flex: 1;
+  margin-bottom: 2%;
+}
+.tl-card-title { font-size: 0.63em; font-weight: 700; color: #0A1628; margin-bottom: 0.3em; }
+.tl-card-text { font-size: 0.55em; color: #4A6080; line-height: 1.4; }
+
+/* Table slide */
+.slide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.58em;
+}
+.slide-table th {
+  background: #0A1628;
+  color: white;
+  padding: 0.5em 0.7em;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+.slide-table td {
+  padding: 0.45em 0.7em;
+  text-align: center;
+  border-bottom: 1px solid #EEF2F7;
+  color: #1E3050;
+}
+.slide-table tr:nth-child(even) td { background: #F8FAFB; }
+.slide-table .highlight-col { font-weight: 700; color: #00B89C; }
+.slide-table .total-row td { background: #E8F6F3; font-weight: 700; color: #0A1628; border-top: 2px solid #00B89C; }
+
+/* Section slide */
+.slide-section {
+  height: 100%;
+  background: linear-gradient(135deg, #0A1628 0%, #1E3460 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10%;
+}
+.sec-num {
+  font-size: 4em;
+  font-weight: 700;
+  color: rgba(0,184,156,0.15);
+  font-family: 'IBM Plex Serif', serif;
+  line-height: 1;
+  margin-bottom: 0.2em;
+}
+.sec-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 1.6em;
+  font-weight: 600;
+  color: white;
+  line-height: 1.25;
+}
+.sec-line {
+  width: 3em;
+  height: 3px;
+  background: var(--teal);
+  border-radius: 2px;
+  margin: 0.6em auto;
+}
+
+/* 2 col compare */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3%;
+  height: 100%;
+}
+.compare-col {
+  background: white;
+  border-radius: 8px;
+  padding: 4%;
+  box-shadow: 0 2px 8px rgba(10,22,40,0.07);
+}
+.compare-col-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-bottom: 4%;
+  padding-bottom: 3%;
+  border-bottom: 2px solid #EEF2F7;
+}
+.compare-col-icon {
+  width: 2em; height: 2em;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75em;
+  flex-shrink: 0;
+}
+.compare-col-icon.adm { background: rgba(244,169,22,0.15); color: #C8870A; }
+.compare-col-icon.stat { background: rgba(0,184,156,0.15); color: #00B89C; }
+.compare-col-title { font-size: 0.65em; font-weight: 700; color: #0A1628; }
+.compare-item { display: flex; gap: 0.4em; margin-bottom: 0.4em; align-items: flex-start; }
+.compare-dot { width: 0.5em; height: 0.5em; border-radius: 50%; background: #00B89C; flex-shrink: 0; margin-top: 0.3em; }
+.compare-dot.gold { background: var(--gold); }
+.compare-text { font-size: 0.58em; color: #4A6080; line-height: 1.4; }
+
+/* Cards grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3%;
+  height: 100%;
+}
+.info-card {
+  background: white;
+  border-radius: 8px;
+  padding: 4%;
+  box-shadow: 0 2px 8px rgba(10,22,40,0.08);
+  display: flex;
+  flex-direction: column;
+}
+.info-card .ic-num {
+  width: 2em; height: 2em;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A1628, #1E3460);
+  color: #00D4B5;
+  font-weight: 700;
+  font-size: 0.75em;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 0.4em;
+}
+.info-card .ic-title { font-size: 0.65em; font-weight: 700; color: #0A1628; margin-bottom: 0.3em; }
+.info-card .ic-text { font-size: 0.58em; color: #4A6080; line-height: 1.45; flex: 1; }
+.info-card .ic-example { font-size: 0.52em; color: #00B89C; font-style: italic; margin-top: 0.4em; }
+
+/* GSBPM */
+.gsbpm-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2%;
+  height: 100%;
+  padding: 2%;
+}
+.gsbpm-item {
+  background: white;
+  border-radius: 8px;
+  padding: 3% 4%;
+  box-shadow: 0 2px 8px rgba(10,22,40,0.08);
+  text-align: center;
+  min-width: 10%;
+  position: relative;
+}
+.gsbpm-num { font-size: 1.2em; font-weight: 700; color: #00B89C; }
+.gsbpm-label { font-size: 0.5em; color: #4A6080; margin-top: 0.2em; line-height: 1.3; }
+.gsbpm-arrow {
+  color: #D8E2EE;
+  font-size: 1em;
+  flex-shrink: 0;
+}
+
+/* Notif toast */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--teal);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 100px;
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Waiting screen */
+.waiting-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #060e1c, #0A1628);
+}
+.waiting-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Scrollbar global */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  #ns-view { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  .ns-topbar { grid-column: 1; }
+  .ns-panel { grid-column: 1; grid-row: 3; height: 300px; border-left: none; border-top: 1px solid rgba(255,255,255,0.08); }
+  .role-grid { grid-template-columns: 1fr; }
+}
+
+/* Disabled */
+.disabled { opacity: 0.4; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<!-- ═══ LANDING ════════════════════════════════ -->
+<div id="landing">
+  <div class="grid-bg"></div>
+  <div class="land-badge">📊 SimStatik — Simulasi Interaktif</div>
+  <h1 class="land-title">Statistik Sektoral &<br>Identifikasi Kegiatan Statistik</h1>
+  <p class="land-sub">Platform simulasi pemaparan materi interaktif 2 arah antara Narasumber dan Peserta</p>
+
+  <div class="role-grid">
+    <div class="role-card narasumber" onclick="selectRole('narasumber')">
+      <span class="role-icon">🎙️</span>
+      <div class="role-name">Narasumber</div>
+      <div class="role-desc">Kendalikan slide, kirim kuis, dan jawab pertanyaan peserta</div>
+    </div>
+    <div class="role-card peserta" onclick="selectRole('peserta')">
+      <span class="role-icon">👥</span>
+      <div class="role-name">Peserta</div>
+      <div class="role-desc">Ikuti paparan, ajukan pertanyaan, dan jawab kuis</div>
+    </div>
+  </div>
+
+  <div class="join-box" id="narasumber-box">
+    <div class="join-label">Buat Sesi Baru</div>
+    <div class="join-row">
+      <input class="inp" id="ns-name" placeholder="Nama narasumber..." value="Livio Mayesta">
+      <button class="btn" onclick="startAsNarasumber()">Mulai Sesi →</button>
+    </div>
+    <div style="font-size:0.75rem;color:var(--gray400);">Kode sesi akan dibuat otomatis & dapat dibagikan ke peserta</div>
+  </div>
+
+  <div class="join-box" id="peserta-box">
+    <div class="join-label">Bergabung ke Sesi</div>
+    <div class="join-row">
+      <input class="inp" id="pt-name" placeholder="Nama Anda...">
+      <input class="inp" id="pt-code" placeholder="Kode sesi..." style="max-width:120px;">
+      <button class="btn btn-gold" onclick="joinAsPeserta()">Bergabung →</button>
+    </div>
+    <div style="font-size:0.75rem;color:var(--gray400);">Minta kode sesi dari narasumber. Buka di tab/device berbeda.</div>
+  </div>
+</div>
+
+<!-- ═══ WAITING ════════════════════════════════ -->
+<div id="waiting" style="display:none">
+  <div class="waiting-screen">
+    <div class="waiting-spinner"></div>
+    <div style="font-size:1.1rem;font-weight:600;">Menunggu narasumber memulai sesi...</div>
+    <div style="color:var(--gray400);font-size:0.85rem;" id="waiting-name"></div>
+    <div style="margin-top:1rem;">
+      <button class="btn btn-ghost btn-sm" onclick="location.reload()">← Kembali</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══════════════════════════════ -->
+<div id="app">
+
+  <!-- NARASUMBER VIEW -->
+  <div id="ns-view" style="display:none">
+    <div class="ns-topbar">
+      <span class="logo">📊 SimStatik</span>
+      <span class="session-pill" id="ns-session-pill"></span>
+      <span class="participant-count"><span class="dot-green"></span><span id="ns-part-count">0</span> peserta</span>
+      <button class="btn btn-ghost btn-sm" onclick="exitSession()">Keluar</button>
+    </div>
+
+    <div class="ns-main">
+      <!-- Module selector -->
+      <div class="nav-row">
+        <button class="mod-btn active" id="mod-btn-0" onclick="switchModule(0)">📌 PSS & EPSS</button>
+        <button class="mod-btn" id="mod-btn-1" onclick="switchModule(1)">📋 Identifikasi Kegiatan</button>
+        <span class="slide-counter" id="ns-slide-counter">Slide 1/9</span>
+      </div>
+
+      <!-- Slide display -->
+      <div class="slide-stage" id="ns-slide-stage"></div>
+
+      <!-- Nav buttons + thumbs -->
+      <div class="nav-row">
+        <button class="btn btn-ghost btn-sm" onclick="prevSlide()">← Sebelumnya</button>
+        <button class="btn btn-sm" onclick="nextSlide()">Selanjutnya →</button>
+      </div>
+      <div class="thumb-strip" id="ns-thumb-strip"></div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="ns-panel">
+      <div class="panel-tabs">
+        <div class="panel-tab active" onclick="switchNsTab('qa')" id="ns-tab-qa">💬 Pertanyaan <span class="badge-count" id="qa-badge" style="display:none">0</span></div>
+        <div class="panel-tab" onclick="switchNsTab('quiz')" id="ns-tab-quiz">🧠 Kuis</div>
+        <div class="panel-tab" onclick="switchNsTab('parts')" id="ns-tab-parts">👥 Peserta</div>
+      </div>
+      <div class="panel-body" id="ns-panel-body">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- PESERTA VIEW -->
+  <div id="pt-view" style="display:none">
+    <div class="pt-topbar">
+      <span class="logo" style="font-size:0.95rem;">📊 SimStatik</span>
+      <span class="dot-green"></span>
+      <span class="pt-name" id="pt-display-name"></span>
+      <span style="color:var(--gray400);font-size:0.8rem;margin-left:auto;" id="pt-module-label"></span>
+    </div>
+    <div class="pt-body">
+      <div class="pt-slide-stage" id="pt-slide-stage"></div>
+      <div class="pt-sync-label">
+        <span class="dot-green"></span>
+        <span id="pt-sync-text">Tersinkronisasi dengan narasumber</span>
+      </div>
+      <div class="pt-tabs">
+        <div class="pt-tab active" onclick="switchPtTab('qa')" id="pt-tab-qa">💬 Tanya Narasumber</div>
+        <div class="pt-tab" onclick="switchPtTab('info')" id="pt-tab-info">ℹ️ Info Sesi</div>
+      </div>
+      <div class="pt-panel active" id="pt-qa-panel">
+        <div class="qa-form-label">Ajukan pertanyaan</div>
+        <textarea class="qa-form-area" id="pt-qa-input" placeholder="Tulis pertanyaan Anda di sini..."></textarea>
+        <button class="btn" style="width:100%" onclick="submitQuestion()">Kirim Pertanyaan →</button>
+        <div class="my-questions" id="pt-my-questions"></div>
+      </div>
+      <div class="pt-panel" id="pt-info-panel">
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div>
+            <div class="qa-form-label">Sesi</div>
+            <div style="font-size:1.1rem;font-weight:700;color:var(--teal)" id="pt-info-code"></div>
+          </div>
+          <div>
+            <div class="qa-form-label">Narasumber</div>
+            <div style="font-size:0.9rem;" id="pt-info-ns"></div>
+          </div>
+          <div>
+            <div class="qa-form-label">Materi Saat Ini</div>
+            <div style="font-size:0.85rem;color:rgba(255,255,255,0.7)" id="pt-info-slide"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Poll overlay -->
+    <div class="poll-overlay" id="poll-overlay">
+      <div class="poll-card">
+        <div class="poll-card-header">🧠 Kuis dari Narasumber</div>
+        <div class="poll-card-question" id="poll-question-text"></div>
+        <div id="poll-options-container"></div>
+        <div class="poll-feedback" id="poll-feedback"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const MODULES = [
+  {
+    title: "PSS & EPSS",
+    subtitle: "Pembinaan & Evaluasi Penyelenggaraan Statistik Sektoral 2026",
+    slides: [
+      {
+        type: "cover",
+        title: "PEMBINAAN DAN EVALUASI\nPENYELENGGARAAN STATISTIK SEKTORAL 2026",
+        date: "Pangkal Pinang, 6 April 2026",
+        presenter: "Livio Mayesta",
+        role: "Prakom Ahli Madya — BPS Kota Pangkal Pinang",
+        note: "Rapat Persiapan Penentuan Lokus Prioritas Pembinaan Statistik Sektoral 2026"
+      },
+      {
+        type: "bullets",
+        num: "01",
+        title: "Penyediaan Statistik untuk Pembangunan",
+        items: [
+          { icon: "🏛️", label: "VISI INDONESIA EMAS 2045", text: "Indonesia sebagai Negara Kesatuan yang Bersatu, Berdaulat, Maju, dan Berkelanjutan" },
+          { icon: "📋", label: "8 MISI PEMBANGUNAN", text: "3 Agenda Transformasi + 2 Agenda Landasan + 3 Agenda Kerangka Implementasi" },
+          { icon: "📊", label: "45 INDIKATOR UTAMA", text: "17 Arah (Tujuan) Pembangunan — 45 Indikator Utama Pembangunan" },
+          { icon: "💡", label: "TRANSFORMASI NASIONAL", text: "Tata Kelola Pemerintahan yang Baik & Transformasi Digital Nasional sebagai landasan" }
+        ]
+      },
+      {
+        type: "bullets",
+        num: "02",
+        title: "Dasar Hukum Pembinaan Statistik Sektoral",
+        items: [
+          { icon: "⚖️", label: "UU No. 16 Tahun 1997", text: "BPS sebagai Pembina Statistik — Pasal 31 & 58: BPS melakukan pembinaan penyelenggaraan kegiatan statistik" },
+          { icon: "📜", label: "PP No. 51 Tahun 1999", text: "Tentang Penyelenggaraan Statistik" },
+          { icon: "🔖", label: "Perpres 39 Tahun 2019", text: "Pasal 13 & 20: BPS sebagai Pembina Data Statistik tingkat pusat dan daerah dalam SDI" },
+          { icon: "📌", label: "Peraturan BPS No. 4/2019 & 7/2020 & 5/2023", text: "NSPK penyelenggaraan statistik sektoral oleh Pemda; fungsi pembinaan BPS Provinsi & Kab/Kota" }
+        ]
+      },
+      {
+        type: "steps",
+        num: "03",
+        title: "Siklus Penyelenggaraan Statistik Sektoral",
+        steps: [
+          { num: "01", title: "Pembinaan Statistik Sektoral", text: "Dilakukan BPS untuk meningkatkan kualitas penyelenggaraan statistik sektoral pada K/L/Pemda", badge: "BPS → Pemda" },
+          { num: "02", title: "Penyelenggaraan Statistik Sektoral", text: "Ditujukan untuk menyediakan data statistik sektoral dalam rangka pemenuhan tugas pemerintahan dan pembangunan", badge: "Output: Data" },
+          { num: "03", title: "Evaluasi (EPSS & IPS)", text: "Untuk mengetahui tingkat kematangan penyelenggaraan statistik sektoral. IPS digunakan sebagai dasar pembinaan", badge: "Feedback Loop" }
+        ]
+      },
+      {
+        type: "timeline",
+        num: "04",
+        title: "Jadwal Pembinaan Statistik Sektoral 2025 (Semester 1)",
+        items: [
+          { month: "Januari", title: "Koordinasi & Persiapan", text: "Pencanangan pembinaan bersama Pj. Walikota Pangkal Pinang" },
+          { month: "Februari", title: "Identifikasi Awal", text: "Identifikasi & Penetapan Kegiatan Statistik Sektoral Prioritas" },
+          { month: "Maret–Juli", title: "Pembinaan Statistik Sektoral Prioritas", text: "Pembinaan SDI, Kualitas Data, Proses Bisnis, Kelembagaan, dan Statistik Nasional" }
+        ]
+      },
+      {
+        type: "timeline",
+        num: "05",
+        title: "Jadwal Pembinaan Statistik Sektoral 2025 (Semester 2)",
+        items: [
+          { month: "Agustus", title: "E-Walidata & Portal Data", text: "Harmonisasi Manajemen E-Walidata dan Portal Data Kota Pangkal Pinang" },
+          { month: "Sep–Nov", title: "Metadata Statistik", text: "Pendampingan, Monitoring, Pemeriksaan & Approval Metadata melalui INDAH" },
+          { month: "Desember", title: "Forum Data", text: "Forum Data, Komunitas Statistik, dan Forum Jurnalis" }
+        ]
+      },
+      {
+        type: "bullets",
+        num: "06",
+        title: "Evaluasi Penyelenggaraan Statistik Sektoral (EPSS)",
+        items: [
+          { icon: "🎯", label: "PENGUKURAN KEMATANGAN", text: "EPSS mengukur tingkat kematangan penyelenggaraan statistik sektoral pada instansi pusat dan pemerintah daerah" },
+          { icon: "📈", label: "MANFAAT EPSS", text: "Bagi BPS: dasar pembinaan statistik sektoral | Bagi K/L/Pemda: dasar peningkatan kualitas penyelenggaraan" },
+          { icon: "📋", label: "KELUARAN EPSS", text: "Indeks Pembangunan Statistik (IPS) + Rekomendasi peningkatan penyelenggaraan statistik sektoral" },
+          { icon: "📢", label: "DISEMINASI HASIL", text: "Dibagipakaikan ke Kemenpan RB, Kemendagri, dan Kemen PPN/Bappenas melalui SK Kepala BPS No.605/2024" }
+        ]
+      },
+      {
+        type: "table",
+        num: "07",
+        title: "Nilai IPS Pemerintah Kota Pangkal Pinang 2024",
+        subtitle: "Ditetapkan melalui Keputusan Kepala BPS Nomor 605 Tahun 2024",
+        headers: ["Domain", "Bobot", "Nilai Harapan", "Nasional", "Pangkal Pinang"],
+        rows: [
+          ["Prinsip SDI", "28%", "2,60", "2,43", "2,75"],
+          ["Kualitas Data", "24%", "2,60", "2,27", "3,00"],
+          ["Proses Bisnis Statistik", "19%", "2,60", "2,47", "3,00"],
+          ["Kelembagaan", "17%", "2,60", "2,32", "2,91"],
+          ["Statistik Nasional", "12%", "2,60", "2,20", "2,78"],
+          ["IPS (Total)", "100%", "2,60", "2,35", "2,89"]
+        ],
+        totalRow: 5,
+        note: "Kegiatan statistik sektoral yang dinilai: Kompilasi Data Profil Kesehatan (2022) & Pendataan Informasi Pariwisata (2023)"
+      },
+      {
+        type: "section",
+        title: "Lokus Penilaian EPSS 2026",
+        subtitle: "Dinas Pariwisata & Dinas Pendidikan dan Kebudayaan Kota Pangkal Pinang"
+      }
+    ]
+  },
+  {
+    title: "Identifikasi Kegiatan Statistik",
+    subtitle: "Pangkal Pinang, 5 Maret 2026",
+    slides: [
+      {
+        type: "cover",
+        title: "IDENTIFIKASI\nKEGIATAN STATISTIK",
+        date: "Pangkal Pinang, 5 Maret 2026",
+        presenter: "Livio Mayesta, SST., M.A.P.",
+        role: "Pranata Komputer Ahli Madya",
+        note: "Materi: Data Statistik • Cara Pengumpulan • Identifikasi Kegiatan"
+      },
+      {
+        type: "steps",
+        num: "OUT",
+        title: "Alur Materi",
+        steps: [
+          { num: "01", title: "Data & Kegiatan Statistik", text: "Pengertian data statistik, indikator, dan konsep dasar kegiatan statistik menurut UU No.16/1997", badge: "Konsep Dasar" },
+          { num: "02", title: "Cara Pengumpulan Data", text: "4 metode: Sensus, Survei, Kompilasi Produk Administrasi, dan Cara Lain sesuai perkembangan TI", badge: "Metode" },
+          { num: "03", title: "Identifikasi Kegiatan Statistik", text: "Tujuan, cakupan, format penulisan judul, dan contoh lembar kerja identifikasi", badge: "Praktik" }
+        ]
+      },
+      {
+        type: "section",
+        title: "Data Statistik &\nKegiatan Statistik",
+        subtitle: "Bagian 1 — Konsep Dasar"
+      },
+      {
+        type: "bullets",
+        num: "01",
+        title: "Apa itu Data Statistik?",
+        items: [
+          { icon: "📄", label: "DATA (DATA MENTAH / DATASET)", text: "Data yang menggambarkan karakteristik suatu objek yang diobservasi. Contoh: data penduduk per-individu (NIK, nama, usia, jenis kelamin)" },
+          { icon: "📊", label: "STATISTIK / INDIKATOR", text: "Hasil pengolahan dataset yang menggambarkan karakteristik populasi. Contoh: Jumlah Penduduk Indonesia = 275.773.774 jiwa" },
+          { icon: "🔄", label: "DATA STATISTIK", text: "Data berupa angka tentang karakteristik populasi yang diperoleh dengan cara pengumpulan, pengolahan, penyajian, dan analisis" },
+          { icon: "⚙️", label: "KEGIATAN STATISTIK", text: "Rangkaian aktivitas yang mencakup perencanaan, pengumpulan, pengolahan, penyajian, dan analisis data untuk menghasilkan data statistik" }
+        ]
+      },
+      {
+        type: "bullets",
+        num: "02",
+        title: "Konsep Kegiatan Statistik",
+        items: [
+          { icon: "🎯", label: "DEFINISI (UU No.16/1997)", text: "Tindakan yang meliputi upaya penyediaan & penyebarluasan data, pengembangan ilmu statistik, dan berkembangnya Sistem Statistik Nasional" },
+          { icon: "✅", label: "KARAKTERISTIK UTAMA", text: "Menghasilkan suatu statistik (angka/indikator) dan mencakup keseluruhan tahapan proses bisnis statistik" },
+          { icon: "🔢", label: "TAHAPAN PROSES BISNIS STATISTIK", text: "Pengumpulan → Pengolahan → Penyajian → Analisis (minimal); Lengkap: Identifikasi kebutuhan, Perancangan, Pembangunan, Pengumpulan, Pengolahan, Analisis, Diseminasi, Evaluasi" },
+          { icon: "🏆", label: "TUJUAN", text: "Menyediakan data statistik yang lengkap, akurat, dan mutakhir guna mendukung pembangunan nasional melalui SSN yang andal, efektif, dan efisien" }
+        ]
+      },
+      {
+        type: "compare",
+        num: "03",
+        title: "Kegiatan Statistik vs Kegiatan Administrasi",
+        left: {
+          icon: "📁", label: "ADM",
+          title: "Kegiatan Administrasi",
+          items: [
+            { text: "Mencatat & mengelola data sebagai bagian dari operasional program/kegiatan" },
+            { text: "Output: Data individual (dataset / data mikro)" },
+            { text: "Fungsi: dokumentasi, pelaporan, atau operasional" },
+            { text: "Contoh: Pencatatan kepegawaian, Registrasi KTP/SIM/Paspor, Registrasi peserta rapat" }
+          ]
+        },
+        right: {
+          icon: "📊", label: "STAT",
+          title: "Kegiatan Statistik",
+          items: [
+            { text: "Mengumpulkan, mengolah, menganalisis data untuk pengambilan keputusan, perencanaan, dan evaluasi" },
+            { text: "Output: Data agregat atau indikator statistik" },
+            { text: "Fungsi: gambaran umum suatu fenomena atau kondisi" },
+            { text: "Contoh: Survei Sosnas, Kompilasi data kepegawaian (diolah menjadi statistik)" }
+          ]
+        }
+      },
+      {
+        type: "bullets",
+        num: "04",
+        title: "Generic Statistical Business Process Model (GSBPM)",
+        items: [
+          { icon: "🌐", label: "APA ITU GSBPM?", text: "Kerangka kerja standar yang selaras dengan proses bisnis statistik yang umum (generic). Menjadi rujukan National Statistical Office (NSO) di seluruh dunia" },
+          { icon: "🔄", label: "8 FASE GSBPM", text: "Specify Needs → Design → Build → Collect → Process → Analyse → Disseminate → Evaluate (siklus tertutup)" },
+          { icon: "✅", label: "FUNGSI", text: "Standard framework dan terminologi proses statistik yang harmonis — memudahkan koordinasi antar instansi" },
+          { icon: "📌", label: "RELEVANSI", text: "Kegiatan Statistik Sektoral harus mencakup keseluruhan atau sebagian besar tahapan GSBPM untuk dapat diakui sebagai kegiatan statistik" }
+        ]
+      },
+      {
+        type: "section",
+        title: "Cara Pengumpulan Data",
+        subtitle: "Bagian 2 — 4 Metode Pengumpulan Data Statistik"
+      },
+      {
+        type: "cards",
+        num: "05",
+        title: "4 Cara Pengumpulan Data Statistik",
+        cards: [
+          { num: "1", title: "Sensus / Pendataan Lengkap", text: "Pencacahan SEMUA unit populasi untuk memperoleh karakteristik populasi pada saat tertentu. Contoh: Sensus Penduduk, Sensus Pertanian", example: "Cakupan: 100% populasi" },
+          { num: "2", title: "Survei", text: "Pencacahan SAMPEL/sebagian unit populasi untuk memperkirakan karakteristik populasi pada saat tertentu. Contoh: Susenas, Sakernas, Survei EPSS", example: "Cakupan: sampel representatif" },
+          { num: "3", title: "Kompilasi Produk Administrasi (KOMPROMIN)", text: "Pengumpulan, pengolahan, penyajian, dan analisis data dari catatan administrasi pemerintah dan/atau masyarakat", example: "Sumber: data sekunder administratif" },
+          { num: "4", title: "Cara Lain sesuai Perkembangan TI", text: "Pemanfaatan internet, media sosial, dan teknologi digital untuk pengumpulan data. Contoh: web scraping, sensor data, open data", example: "Inovatif: big data, IoT" }
+        ]
+      },
+      {
+        type: "bullets",
+        num: "06",
+        title: "Kompilasi Produk Administrasi (KOMPROMIN)",
+        items: [
+          { icon: "📂", label: "DEFINISI (UU No.16/1997)", text: "Cara pengumpulan, pengolahan, penyajian, dan analisis data yang didasarkan pada catatan administrasi yang ada pada pemerintah dan/atau masyarakat" },
+          { icon: "📥", label: "SUMBER DATA", text: "Data sekunder berupa catatan administrasi (manual maupun elektronik) termasuk hasil kegiatan statistik lainnya" },
+          { icon: "⚙️", label: "TAHAPAN", text: "Mencakup proses bisnis statistik: persiapan/perencanaan → pengumpulan → pengolahan → analisis → diseminasi" },
+          { icon: "📈", label: "HASIL", text: "Menghasilkan data/indikator statistik BARU: hasil perhitungan/tabulasi dari dataset (jumlah, rata-rata, persentase, rasio, proporsi)" }
+        ]
+      },
+      {
+        type: "bullets",
+        num: "07",
+        title: "Sumber Data KOMPROMIN",
+        items: [
+          { icon: "📋", label: "DATA ADMINISTRASI", text: "Data kepegawaian, kearsipan, keuangan, registrasi penduduk, registrasi produk, registrasi perusahaan, data hasil penilaian, dll." },
+          { icon: "📊", label: "DATA STATISTIK", text: "Dataset/data mikro hasil kegiatan statistik: Data mikro Susenas, Sakernas, dll. Serta indikator: jumlah penduduk, tenaga kerja, PDRB, inflasi, dll." },
+          { icon: "🔗", label: "HUBUNGAN", text: "Data administrasi merupakan INPUT dalam kegiatan statistik → diolah menjadi data agregat/indikator statistik yang berguna" },
+          { icon: "💡", label: "CONTOH NYATA", text: "Kompilasi Data Perpustakaan Terakreditasi, Kompilasi Data Penerima BPJ-JKN, Kompilasi Data Pemagangan Nasional — semua menggunakan data administrasi sebagai sumber" }
+        ]
+      },
+      {
+        type: "section",
+        title: "Identifikasi\nKegiatan Statistik",
+        subtitle: "Bagian 3 — Praktik & Penerapan"
+      },
+      {
+        type: "bullets",
+        num: "08",
+        title: "Tujuan & Cakupan Identifikasi Kegiatan Statistik Sektoral",
+        items: [
+          { icon: "🎯", label: "TUJUAN", text: "Terbangun semesta/populasi kegiatan statistik sektoral pada K/L/Pemda → memudahkan walidata koordinasi dengan produsen data (perencanaan, monitoring, evaluasi)" },
+          { icon: "🏗️", label: "MEMBANGUN PUSAT RUJUKAN", text: "Identifikasi merupakan upaya membangun pusat rujukan informasi statistik yang komprehensif dan dapat diandalkan" },
+          { icon: "📅", label: "CAKUPAN KEGIATAN", text: "Mencakup kegiatan statistik sektoral yang sudah, sedang, dan/atau akan dilaksanakan minimal pada tahun 2024–2025" },
+          { icon: "⭐", label: "PRIORITAS PEMBINAAN", text: "Kegiatan statistik prioritas (subset dari LK Identifikasi) merupakan kegiatan yang sedang dan/atau akan dilaksanakan oleh produsen data" }
+        ]
+      },
+      {
+        type: "bullets",
+        num: "09",
+        title: "Format Penulisan Judul Kegiatan Statistik",
+        items: [
+          { icon: "✅", label: "FORMAT YANG BENAR", text: "[Cara Pengumpulan Data] + [Komponen Utama Kegiatan] + [Cakupan Wilayah / Ruang Lingkup] + [Komponen Tambahan]" },
+          { icon: "💚", label: "CONTOH BENAR", text: "\"Kompilasi Data Jabatan Fungsional Penerjemah di Wilayah Indonesia\" | \"Survei Moderasi Beragama di Indonesia\" | \"Survei Perkembangan Harga Komoditas Pangan Pokok Strategis di Indonesia\"" },
+          { icon: "❌", label: "CONTOH SALAH — NAMA DATA, BUKAN KEGIATAN", text: "\"Jumlah nelayan yang terlindungi\" | \"Data Pelaku Koperasi dan UMKM\" | \"Angka Putus Sekolah\" (ini adalah indikator, bukan judul kegiatan)" },
+          { icon: "🚫", label: "CONTOH SALAH — BUKAN KEGIATAN STATISTIK", text: "\"Jemput Bola Online\" | \"Gerakan KUDU Sekolah\" | \"Evaluasi Penyelenggaraan Pemerintahan Daerah (EPPD)\" | \"CSIRT Sektor Pemerintah\" (singkatan tidak diperbolehkan)" }
+        ]
+      },
+      {
+        type: "section",
+        title: "Contoh Lembar Kerja Identifikasi Kegiatan Statistik",
+        subtitle: "Kolom: Instansi • Judul Kegiatan • Periode • Cara Pengumpulan • Indikator • Status Prioritas • Pemanfaatan Data"
+      }
+    ]
+  }
+];
+
+const QUIZ_QUESTIONS = [
+  {
+    q: "Apa kepanjangan dari EPSS dalam konteks pembinaan statistik sektoral?",
+    opts: ["A. Evaluasi Program Statistik Sektoral","B. Evaluasi Penyelenggaraan Statistik Sektoral","C. Evaluasi Penyelenggara Sistem Statistik","D. Evaluasi Penilaian Statistik Sektoral"],
+    ans: 1, module: 0
+  },
+  {
+    q: "Berapa nilai IPS Pemerintah Kota Pangkal Pinang pada EPSS 2024?",
+    opts: ["A. 2,35","B. 2,60","C. 2,89","D. 3,00"],
+    ans: 2, module: 0
+  },
+  {
+    q: "Dalam EPSS 2024, domain manakah yang mendapat nilai tertinggi bagi Kota Pangkal Pinang?",
+    opts: ["A. Prinsip SDI (2,75)","B. Kelembagaan (2,91)","C. Kualitas Data (3,00)","D. Statistik Nasional (2,78)"],
+    ans: 2, module: 0
+  },
+  {
+    q: "Perpres No. 39 Tahun 2019 mengatur tentang...",
+    opts: ["A. Pembinaan dan Pengawasan Penyelenggaraan Pemerintahan Daerah","B. Sistem Data Indonesia","C. Penyelenggaraan Statistik","D. Satu Data Indonesia (SDI)"],
+    ans: 3, module: 0
+  },
+  {
+    q: "GSBPM adalah singkatan dari...",
+    opts: ["A. General Statistical Business Process Model","B. Generic Statistical Business Process Model","C. Global System of Business Process Management","D. Generic System of Business Process Model"],
+    ans: 1, module: 1
+  },
+  {
+    q: "Ada berapa cara pengumpulan data statistik yang diakui dalam UU Statistik?",
+    opts: ["A. 2 cara","B. 3 cara","C. 4 cara","D. 5 cara"],
+    ans: 2, module: 1
+  },
+  {
+    q: "KOMPROMIN adalah singkatan dari...",
+    opts: ["A. Kompilasi Program Pemerintah dan Masyarakat","B. Kompilasi Produk Administrasi","C. Koordinasi Program Monitoring Instansi","D. Kompilasi Produk Administratif dan Manajemen"],
+    ans: 1, module: 1
+  },
+  {
+    q: "Format penulisan judul kegiatan statistik yang benar adalah...",
+    opts: ["A. Nama data + Instansi + Tahun","B. Topik + Metode + Wilayah + Instansi","C. Cara Pengumpulan + Komponen Utama + Cakupan Wilayah + Komponen Tambahan","D. Instansi + Jenis Data + Periode + Wilayah"],
+    ans: 2, module: 1
+  },
+  {
+    q: "Manakah yang BUKAN merupakan contoh judul kegiatan statistik yang benar?",
+    opts: ["A. Survei Moderasi Beragama di Indonesia","B. Kompilasi Data Perpustakaan Terakreditasi di Indonesia","C. Angka Putus Sekolah Kota Pangkal Pinang","D. Kompilasi Data Jabatan Fungsional Penerjemah di Wilayah Indonesia"],
+    ans: 2, module: 1
+  },
+  {
+    q: "Apa perbedaan utama output kegiatan statistik dibandingkan kegiatan administrasi?",
+    opts: ["A. Kegiatan statistik menghasilkan data individual, administrasi menghasilkan indikator","B. Kegiatan statistik menghasilkan data agregat/indikator, administrasi menghasilkan data individual","C. Keduanya menghasilkan output yang sama","D. Kegiatan statistik hanya untuk internal instansi"],
+    ans: 1, module: 1
+  }
+];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let st = {
+  role: null,
+  name: null,
+  code: null,
+  nsName: null,
+  module: 0,
+  slide: 0,
+  questions: [],
+  participants: [],
+  activePoll: null,
+  pollResults: {},
+  sentQuizIds: [],
+  nsTab: 'qa',
+  ptTab: 'qa',
+  myAnswered: false
+};
+
+let bc = null;
+
+// ═══════════════════════════════════════════════
+// CHANNEL HELPERS
+// ═══════════════════════════════════════════════
+function initChannel(code) {
+  if (bc) bc.close();
+  bc = new BroadcastChannel('simstatik_' + code);
+  bc.onmessage = handleMessage;
+}
+
+function send(type, data = {}) {
+  if (!bc) return;
+  bc.postMessage({ type, ...data });
+}
+
+function handleMessage(evt) {
+  const { type } = evt.data;
+  if (st.role === 'narasumber') {
+    if (type === 'JOIN') {
+      const p = evt.data;
+      if (!st.participants.find(x => x.name === p.name)) {
+        st.participants.push({ name: p.name, joinedAt: Date.now() });
+      }
+      updatePartCount();
+      if (st.nsTab === 'parts') renderNsPanel();
+      // Sync state to new joiner
+      send('STATE_SYNC', getSyncPayload());
+      showToast(`${p.name} bergabung`);
+    }
+    if (type === 'QUESTION') {
+      st.questions.push({ id: Date.now(), author: evt.data.author, text: evt.data.text, answered: false, answer: '' });
+      updateQaBadge();
+      if (st.nsTab === 'qa') renderNsPanel();
+      showToast(`❓ Pertanyaan baru dari ${evt.data.author}`);
+    }
+    if (type === 'POLL_ANSWER') {
+      const key = evt.data.optIdx + '_' + evt.data.name;
+      if (st.pollResults) st.pollResults[key] = { optIdx: evt.data.optIdx, name: evt.data.name };
+      if (st.nsTab === 'quiz') renderNsPanel();
+    }
+  }
+  if (st.role === 'peserta') {
+    if (type === 'STATE_SYNC') {
+      const d = evt.data;
+      st.module = d.module;
+      st.slide = d.slide;
+      st.nsName = d.nsName;
+      renderPtSlide();
+      updatePtInfo();
+      if (d.activePoll && !st.myAnswered) showPollOverlay(d.activePoll);
+      if (!d.activePoll) hidePollOverlay();
+    }
+    if (type === 'GOTO_SLIDE') {
+      st.module = evt.data.module;
+      st.slide = evt.data.slide;
+      renderPtSlide();
+      updatePtInfo();
+    }
+    if (type === 'LAUNCH_POLL') {
+      st.myAnswered = false;
+      showPollOverlay(evt.data.poll);
+    }
+    if (type === 'END_POLL') {
+      hidePollOverlay();
+    }
+    if (type === 'NS_ANSWER') {
+      const q = st.questions.find(q => q.id === evt.data.id);
+      if (q) { q.answered = true; q.answer = evt.data.answer; renderPtMyQ(); }
+    }
+  }
+}
+
+function getSyncPayload() {
+  return { module: st.module, slide: st.slide, nsName: st.name, activePoll: st.activePoll };
+}
+
+// ═══════════════════════════════════════════════
+// ROLE SELECTION
+// ═══════════════════════════════════════════════
+function selectRole(role) {
+  document.querySelectorAll('.join-box').forEach(b => b.classList.remove('show'));
+  document.getElementById(role + '-box').classList.add('show');
+}
+
+function startAsNarasumber() {
+  const name = document.getElementById('ns-name').value.trim();
+  if (!name) { showToast('Masukkan nama narasumber'); return; }
+  const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+  st.role = 'narasumber';
+  st.name = name;
+  st.code = code;
+  initChannel(code);
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('ns-view').style.display = 'grid';
+  document.getElementById('ns-session-pill').textContent = `🔑 Kode: ${code}`;
+  updatePartCount();
+  renderNsSlide();
+  renderThumbs();
+  switchNsTab('qa');
+  showToast(`Sesi dimulai! Kode: ${code}`);
+}
+
+function joinAsPeserta() {
+  const name = document.getElementById('pt-name').value.trim();
+  const code = document.getElementById('pt-code').value.trim().toUpperCase();
+  if (!name) { showToast('Masukkan nama Anda'); return; }
+  if (!code) { showToast('Masukkan kode sesi'); return; }
+  st.role = 'peserta';
+  st.name = name;
+  st.code = code;
+  initChannel(code);
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('waiting').style.display = 'block';
+  document.getElementById('waiting-name').textContent = `Anda: ${name} — Sesi: ${code}`;
+  send('JOIN', { name });
+  // Show app after short delay (or on STATE_SYNC)
+  bc.addEventListener('message', function onSync(e) {
+    if (e.data.type === 'STATE_SYNC') {
+      bc.removeEventListener('message', onSync);
+      showPtView();
+    }
+  });
+  // Fallback: show after 2s anyway
+  setTimeout(() => {
+    if (document.getElementById('waiting').style.display !== 'none') showPtView();
+  }, 2000);
+}
+
+function showPtView() {
+  document.getElementById('waiting').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('pt-view').style.display = 'flex';
+  document.getElementById('pt-display-name').textContent = st.name;
+  document.getElementById('pt-info-code').textContent = st.code;
+  document.getElementById('pt-info-ns').textContent = st.nsName || '—';
+  renderPtSlide();
+  updatePtInfo();
+}
+
+function exitSession() {
+  if (confirm('Keluar dari sesi?')) location.reload();
+}
+
+// ═══════════════════════════════════════════════
+// SLIDE NAVIGATION
+// ═══════════════════════════════════════════════
+function switchModule(idx) {
+  st.module = idx;
+  st.slide = 0;
+  document.querySelectorAll('.mod-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+  renderNsSlide();
+  renderThumbs();
+  broadcast();
+}
+
+function prevSlide() {
+  if (st.slide > 0) { st.slide--; renderNsSlide(); renderThumbs(); broadcast(); }
+}
+
+function nextSlide() {
+  const total = MODULES[st.module].slides.length;
+  if (st.slide < total - 1) { st.slide++; renderNsSlide(); renderThumbs(); broadcast(); }
+}
+
+function gotoSlide(idx) {
+  st.slide = idx;
+  renderNsSlide();
+  renderThumbs();
+  broadcast();
+}
+
+function broadcast() {
+  send('GOTO_SLIDE', { module: st.module, slide: st.slide });
+}
+
+function renderNsSlide() {
+  const slides = MODULES[st.module].slides;
+  const s = slides[st.slide];
+  const el = document.getElementById('ns-slide-stage');
+  el.innerHTML = renderSlideHTML(s);
+  document.getElementById('ns-slide-counter').textContent = `Slide ${st.slide + 1}/${slides.length}`;
+  // Update module buttons
+  document.querySelectorAll('.mod-btn').forEach((b, i) => b.classList.toggle('active', i === st.module));
+}
+
+function renderPtSlide() {
+  const slides = MODULES[st.module].slides;
+  const s = slides[Math.min(st.slide, slides.length - 1)];
+  const el = document.getElementById('pt-slide-stage');
+  if (el) el.innerHTML = renderSlideHTML(s);
+  const mod = MODULES[st.module];
+  const lbl = document.getElementById('pt-module-label');
+  if (lbl) lbl.textContent = `${mod.title} — Slide ${st.slide + 1}/${slides.length}`;
+}
+
+function updatePtInfo() {
+  const si = document.getElementById('pt-info-slide');
+  if (si) si.textContent = `${MODULES[st.module].title} — Slide ${st.slide + 1}/${MODULES[st.module].slides.length}`;
+  const ni = document.getElementById('pt-info-ns');
+  if (ni) ni.textContent = st.nsName || '—';
+  const ci = document.getElementById('pt-info-code');
+  if (ci) ci.textContent = st.code;
+}
+
+// ═══════════════════════════════════════════════
+// THUMBNAILS
+// ═══════════════════════════════════════════════
+function renderThumbs() {
+  const strip = document.getElementById('ns-thumb-strip');
+  const slides = MODULES[st.module].slides;
+  strip.innerHTML = slides.map((s, i) => `
+    <div class="thumb ${i === st.slide ? 'active' : ''}" onclick="gotoSlide(${i})" title="Slide ${i+1}">
+      <div style="width:100%;height:100%;overflow:hidden;position:relative;">
+        <div style="transform:scale(0.25);transform-origin:top left;width:400%;height:400%;pointer-events:none;">
+          ${renderSlideHTML(s)}
+        </div>
+      </div>
+      <div class="thumb-label">S${i+1}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════
+// SLIDE RENDERER
+// ═══════════════════════════════════════════════
+function renderSlideHTML(s) {
+  if (!s) return '<div style="height:100%;display:flex;align-items:center;justify-content:center;background:#F8FAFB;color:#ccc;">—</div>';
+  switch (s.type) {
+    case 'cover': return renderCover(s);
+    case 'bullets': return renderBullets(s);
+    case 'steps': return renderSteps(s);
+    case 'timeline': return renderTimeline(s);
+    case 'table': return renderTable(s);
+    case 'section': return renderSection(s);
+    case 'compare': return renderCompare(s);
+    case 'cards': return renderCards(s);
+    default: return '<div style="background:#F8FAFB;height:100%;"></div>';
+  }
+}
+
+function renderCover(s) {
+  return `<div class="slide slide-cover">
+    <div class="cover-badge">BPS Kota Pangkal Pinang • 2026</div>
+    <div class="cover-title">${s.title.replace(/\n/g,'<br>')}</div>
+    <div class="cover-sub">${s.date}</div>
+    <div class="cover-presenter">
+      <div class="pres-name">${s.presenter}</div>
+      <div class="pres-role">${s.role}</div>
+    </div>
+    <div style="margin-top:auto;font-size:0.55em;color:rgba(255,255,255,0.35);padding-top:1em;">${s.note}</div>
+    <div class="deco"></div>
+    <div class="slide-deco-dots">${Array(24).fill('<span></span>').join('')}</div>
+  </div>`;
+}
+
+function renderBullets(s) {
+  const items = s.items.map(it => `
+    <div class="bullet-item">
+      <div class="bullet-icon">${it.icon}</div>
+      <div class="bullet-content">
+        <div class="b-label">${it.label}</div>
+        <div class="b-text">${it.text}</div>
+      </div>
+    </div>
+  `).join('');
+  return `<div class="slide slide-content">
+    <div class="slide-header">
+      <span class="slide-num">${s.num}</span>
+      <span class="slide-title">${s.title}</span>
+    </div>
+    <div class="slide-body">${items}</div>
+  </div>`;
+}
+
+function renderSteps(s) {
+  const steps = s.steps.map(st => `
+    <div class="step-item">
+      <div class="step-badge">${st.badge}</div>
+      <div class="step-num">${st.num}</div>
+      <div class="step-title">${st.title}</div>
+      <div class="step-text">${st.text}</div>
+    </div>
+  `).join('');
+  return `<div class="slide slide-content">
+    <div class="slide-header">
+      <span class="slide-num">${s.num}</span>
+      <span class="slide-title">${s.title}</span>
+    </div>
+    <div class="slide-body"><div class="step-grid">${steps}</div></div>
+  </div>`;
+}
+
+function renderTimeline(s) {
+  const items = s.items.map((it, i, arr) => `
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-month">${it.month}</div></div>
+      <div class="tl-dot-col">
+        <div class="tl-dot"></div>
+        ${i < arr.length - 1 ? '<div class="tl-line"></div>' : ''}
+      </div>
+      <div>
+        <div class="tl-card">
+          <div class="tl-card-title">${it.title}</div>
+          <div class="tl-card-text">${it.text}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  return `<div class="slide slide-content">
+    <div class="slide-header">
+      <span class="slide-num">${s.num}</span>
+      <span class="slide-title">${s.title}</span>
+    </div>
+    <div class="slide-body"><div class="timeline">${items}</div></div>
+  </div>`;
+}
+
+function renderTable(s) {
+  const heads = s.headers.map(h => `<th>${h}</th>`).join('');
+  const rows = s.rows.map((r, ri) => {
+    const cls = ri === s.totalRow ? 'total-row' : '';
+    const cells = r.map((c, ci) => `<td class="${ci === s.headers.length-1 ? 'highlight-col' : ''}">${c}</td>`).join('');
+    return `<tr class="${cls}">${cells}</tr>`;
+  }).join('');
+  return `<div class="slide slide-content">
+    <div class="slide-header">
+      <span class="slide-num">${s.num}</span>
+      <span class="slide-title">${s.title}</span>
+    </div>
+    <div class="slide-body" style="gap:2%">
+      <div style="font-size:0.55em;color:#4A6080;margin-bottom:0.5em;">${s.subtitle}</div>
+      <div style="overflow:auto;flex:1"><table class="slide-table"><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table></div>
+      <div style="font-size:0.52em;color:#8FA3BF;border-top:1px solid #EEF2F7;padding-top:0.4em;">${s.note}</div>
+    </div>
+  </div>`;
+}
+
+function renderSection(s) {
+  return `<div class="slide slide-section">
+    <div>
+      <div class="sec-title">${s.title.replace(/\n/g,'<br>')}</div>
+      <div class="sec-line"></div>
+      <div style="font-size:0.6em;color:rgba(255,255,255,0.45);line-height:1.5;max-width:80%;margin:0 auto;">${s.subtitle}</div>
+    </div>
+  </div>`;
+}
+
+function renderCompare(s) {
+  function col(data, side) {
+    const dotClass = side === 'left' ? 'gold' : '';
+    const iconClass = side === 'left' ? 'adm' : 'stat';
+    const items = data.items.map(it => `
+      <div class="compare-item">
+        <div class="compare-dot ${dotClass}"></div>
+        <div class="compare-text">${it.text}</div>
+      </div>
+    `).join('');
+    return `<div class="compare-col">
+      <div class="compare-col-head">
+        <div class="compare-col-icon ${iconClass}">${data.icon}</div>
+        <div class="compare-col-title">${data.title}</div>
+      </div>
+      ${items}
+    </div>`;
+  }
+  return `<div class="slide slide-content">
+    <div class="slide-header">
+      <span class="slide-num">${s.num}</span>
+      <span class="slide-title">${s.title}</span>
+    </div>
+    <div class="slide-body"><div class="compare-grid">${col(s.left,'left')}${col(s.right,'right')}</div></div>
+  </div>`;
+}
+
+function renderCards(s) {
+  const cards = s.cards.map(c => `
+    <div class="info-card">
+      <div class="ic-num">${c.num}</div>
+      <div class="ic-title">${c.title}</div>
+      <div class="ic-text">${c.text}</div>
+      <div class="ic-example">${c.example}</div>
+    </div>
+  `).join('');
+  return `<div class="slide slide-content">
+    <div class="slide-header">
+      <span class="slide-num">${s.num}</span>
+      <span class="slide-title">${s.title}</span>
+    </div>
+    <div class="slide-body"><div class="cards-grid">${cards}</div></div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// NS PANEL TABS
+// ═══════════════════════════════════════════════
+function switchNsTab(tab) {
+  st.nsTab = tab;
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ns-tab-' + tab).classList.add('active');
+  renderNsPanel();
+}
+
+function renderNsPanel() {
+  const body = document.getElementById('ns-panel-body');
+  if (st.nsTab === 'qa') body.innerHTML = renderQaPanel();
+  else if (st.nsTab === 'quiz') body.innerHTML = renderQuizPanel();
+  else if (st.nsTab === 'parts') body.innerHTML = renderPartsPanel();
+}
+
+function renderQaPanel() {
+  if (!st.questions.length) return `<div class="empty-state"><div class="empty-icon">💬</div>Belum ada pertanyaan dari peserta.<br>Pertanyaan akan muncul di sini.</div>`;
+  return st.questions.map(q => `
+    <div class="qa-item">
+      <div class="qa-author">👤 ${q.author}</div>
+      <div class="qa-text">${q.text}</div>
+      ${q.answered
+        ? `<div class="qa-answered">✅ Jawaban Anda: "${q.answer}"</div>`
+        : `<div class="qa-answer-form">
+            <input id="ans-${q.id}" placeholder="Tulis jawaban..." onkeydown="if(event.key==='Enter')answerQ(${q.id})">
+            <button class="btn btn-sm" onclick="answerQ(${q.id})">Jawab</button>
+          </div>`
+      }
+    </div>
+  `).join('');
+}
+
+function answerQ(id) {
+  const inp = document.getElementById('ans-' + id);
+  const ans = inp.value.trim();
+  if (!ans) return;
+  const q = st.questions.find(x => x.id === id);
+  if (!q) return;
+  q.answered = true;
+  q.answer = ans;
+  send('NS_ANSWER', { id, answer: ans });
+  updateQaBadge();
+  renderNsPanel();
+  showToast('Jawaban terkirim!');
+}
+
+function renderQuizPanel() {
+  // Active poll results
+  let active = '';
+  if (st.activePoll !== null) {
+    const poll = QUIZ_QUESTIONS[st.activePoll];
+    const results = Object.values(st.pollResults);
+    const total = results.length;
+    const counts = poll.opts.map((_, i) => results.filter(r => r.optIdx === i).length);
+    const bars = poll.opts.map((opt, i) => {
+      const pct = total ? Math.round((counts[i] / total) * 100) : 0;
+      const isAns = i === poll.ans;
+      return `<div class="poll-result-bar">
+        <div class="poll-result-label">
+          <span>${opt} ${isAns ? '✅' : ''}</span>
+          <span>${counts[i]}/${total} (${pct}%)</span>
+        </div>
+        <div class="poll-bar-track"><div class="poll-bar-fill ${isAns ? '' : 'gold'}" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+    active = `<div style="margin-bottom:1rem;padding:0.85rem;background:rgba(0,184,156,0.08);border:1px solid rgba(0,184,156,0.25);border-radius:10px;">
+      <div style="font-size:0.72rem;font-weight:700;color:var(--teal);margin-bottom:0.5rem;">📊 KUIS AKTIF — ${total} jawaban masuk</div>
+      <div style="font-size:0.82rem;color:white;margin-bottom:0.75rem;font-weight:600;">${poll.q}</div>
+      ${bars}
+      <button class="btn btn-red btn-sm" style="margin-top:0.5rem;width:100%" onclick="endPoll()">Akhiri Kuis</button>
+    </div>`;
+  }
+
+  const items = QUIZ_QUESTIONS.map((q, i) => {
+    const sent = st.sentQuizIds.includes(i);
+    return `<div class="quiz-item ${sent ? 'sent' : ''}" onclick="${sent ? '' : 'launchQuiz(' + i + ')'}">
+      <div class="quiz-q">${i+1}. ${q.q}</div>
+      <div class="quiz-opts">${q.opts.join(' | ')}</div>
+      <div class="launch-btn">
+        ${sent
+          ? '<span style="font-size:0.72rem;color:var(--gray400)">✓ Sudah dikirim</span>'
+          : '<button class="btn btn-sm" onclick="event.stopPropagation();launchQuiz('+i+')">🚀 Kirim ke Peserta</button>'
+        }
+      </div>
+    </div>`;
+  }).join('');
+
+  return active + `<div style="font-size:0.72rem;font-weight:700;color:var(--gray400);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.75rem;">Bank Soal (${QUIZ_QUESTIONS.length} soal)</div>` + items;
+}
+
+function launchQuiz(idx) {
+  if (st.activePoll !== null) { showToast('Akhiri kuis aktif terlebih dahulu'); return; }
+  st.activePoll = idx;
+  st.pollResults = {};
+  if (!st.sentQuizIds.includes(idx)) st.sentQuizIds.push(idx);
+  send('LAUNCH_POLL', { poll: { idx, q: QUIZ_QUESTIONS[idx].q, opts: QUIZ_QUESTIONS[idx].opts, ans: QUIZ_QUESTIONS[idx].ans } });
+  renderNsPanel();
+  showToast('Kuis dikirim ke peserta!');
+}
+
+function endPoll() {
+  st.activePoll = null;
+  send('END_POLL');
+  renderNsPanel();
+  showToast('Kuis diakhiri');
+}
+
+function renderPartsPanel() {
+  if (!st.participants.length) return `<div class="empty-state"><div class="empty-icon">👥</div>Belum ada peserta yang bergabung.<br>Bagikan kode sesi kepada peserta.</div>`;
+  return st.participants.map(p => `
+    <div class="part-item">
+      <div class="part-avatar">${p.name.charAt(0).toUpperCase()}</div>
+      <div>${p.name}</div>
+    </div>
+  `).join('');
+}
+
+function updatePartCount() {
+  document.getElementById('ns-part-count').textContent = st.participants.length;
+}
+
+function updateQaBadge() {
+  const badge = document.getElementById('qa-badge');
+  const unread = st.questions.filter(q => !q.answered).length;
+  badge.style.display = unread ? 'flex' : 'none';
+  badge.textContent = unread;
+}
+
+// ═══════════════════════════════════════════════
+// PESERTA PANEL
+// ═══════════════════════════════════════════════
+function switchPtTab(tab) {
+  st.ptTab = tab;
+  document.querySelectorAll('.pt-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('pt-tab-' + tab).classList.add('active');
+  document.querySelectorAll('.pt-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('pt-' + tab + '-panel').classList.add('active');
+}
+
+function submitQuestion() {
+  const inp = document.getElementById('pt-qa-input');
+  const text = inp.value.trim();
+  if (!text) { showToast('Tulis pertanyaan terlebih dahulu'); return; }
+  const q = { id: Date.now(), text, answered: false, answer: '' };
+  st.questions.push(q);
+  send('QUESTION', { author: st.name, text });
+  inp.value = '';
+  renderPtMyQ();
+  showToast('Pertanyaan terkirim! ✓');
+}
+
+function renderPtMyQ() {
+  const el = document.getElementById('pt-my-questions');
+  if (!el) return;
+  if (!st.questions.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div style="font-size:0.72rem;font-weight:700;color:var(--gray400);letter-spacing:0.06em;text-transform:uppercase;margin-top:1rem;margin-bottom:0.5rem;">Pertanyaan Saya</div>`
+    + st.questions.map(q => `
+      <div class="my-q-item">
+        <div class="my-q-label">${q.answered ? '✅ Dijawab' : '⏳ Menunggu jawaban'}</div>
+        <div>${q.text}</div>
+        ${q.answered ? `<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--teal);font-style:italic;">💬 ${q.answer}</div>` : ''}
+      </div>
+    `).join('');
+}
+
+// ═══════════════════════════════════════════════
+// POLL OVERLAY (PESERTA)
+// ═══════════════════════════════════════════════
+function showPollOverlay(poll) {
+  const overlay = document.getElementById('poll-overlay');
+  document.getElementById('poll-question-text').textContent = poll.q;
+  const container = document.getElementById('poll-options-container');
+  const letters = ['A','B','C','D'];
+  container.innerHTML = poll.opts.map((opt, i) => `
+    <div class="poll-option" id="poll-opt-${i}" onclick="choosePollOpt(${i}, ${poll.ans})">
+      <div class="opt-letter">${letters[i]}</div>
+      <div>${opt}</div>
+    </div>
+  `).join('');
+  document.getElementById('poll-feedback').classList.remove('show','right','wrong');
+  overlay.classList.add('show');
+  st.currentPoll = poll;
+}
+
+function hidePollOverlay() {
+  document.getElementById('poll-overlay').classList.remove('show');
+  st.myAnswered = false;
+  st.currentPoll = null;
+}
+
+function choosePollOpt(idx, ansIdx) {
+  if (st.myAnswered) return;
+  st.myAnswered = true;
+  // Mark selected
+  document.querySelectorAll('.poll-option').forEach((el, i) => {
+    el.classList.remove('selected','correct','wrong');
+    if (i === ansIdx) el.classList.add('correct');
+    else if (i === idx && idx !== ansIdx) el.classList.add('wrong');
+  });
+  // Feedback
+  const fb = document.getElementById('poll-feedback');
+  if (idx === ansIdx) {
+    fb.textContent = '🎉 Benar! Jawaban Anda tepat.';
+    fb.className = 'poll-feedback show right';
+  } else {
+    fb.textContent = `❌ Belum tepat. Jawaban yang benar: ${['A','B','C','D'][ansIdx]}`;
+    fb.className = 'poll-feedback show wrong';
+  }
+  // Send result to narasumber
+  send('POLL_ANSWER', { optIdx: idx, name: st.name });
+}
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════════════
+// KEYBOARD NAV
+// ═══════════════════════════════════════════════
+document.addEventListener('keydown', (e) => {
+  if (st.role !== 'narasumber') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextSlide();
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevSlide();
+});
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+// Periodically send state sync from narasumber
+setInterval(() => {
+  if (st.role === 'narasumber') send('STATE_SYNC', getSyncPayload());
+}, 5000);
+</script>
+</body>
+</html>
